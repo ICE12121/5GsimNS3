@@ -333,10 +333,10 @@ main(int argc, char* argv[])
     nrHelper->AttachToClosestEnb(ueNetDev, enbNetDev);
     /////////////////////////////////////////////////////////////////////////////
 // Define the maximum bounds for the mobility model
-double x_max = 10.0; // Maximum x-coordinate for UE movement
-double y_max = 10.0; // Maximum y-coordinate for UE movement
-double distance = 10.0; // Maximum distance a UE can cover in each random step
-double speed = 2.0; // Speed of the UE in meters/second
+// double x_max = 50.0; // Maximum x-coordinate for UE movement
+// double y_max = 50.0; // Maximum y-coordinate for UE movement
+// double distance = 20.0; // Maximum distance a UE can cover in each random step
+// double speed = 10.0; // Speed of the UE in meters/second
 
 // Create a NodeContainer with the nodes from ueNetDev
 NodeContainer ueNodes;
@@ -344,13 +344,65 @@ for (NetDeviceContainer::Iterator it = ueNetDev.Begin(); it != ueNetDev.End(); +
     ueNodes.Add((*it)->GetNode());
 }
 
-// Setup Mobility Model for UEs
-MobilityHelper mobility;
-mobility.SetMobilityModel("ns3::RandomWalk2dMobilityModel",
-                          "Bounds", RectangleValue(Rectangle(-x_max, x_max, -y_max, y_max)),
-                          "Distance", DoubleValue(distance),
-                          "Speed", StringValue("ns3::ConstantRandomVariable[Constant=" + std::to_string(speed) + "]"));
-mobility.Install(ueNodes);
+//  // Define a position allocator
+//     Ptr<UniformRandomVariable> xVal = CreateObject<UniformRandomVariable>();
+//     xVal->SetAttribute("Min", DoubleValue(0.0));
+//     xVal->SetAttribute("Max", DoubleValue(100.0)); // adjust these values as needed
+
+//     Ptr<UniformRandomVariable> yVal = CreateObject<UniformRandomVariable>();
+//     yVal->SetAttribute("Min", DoubleValue(0.0));
+//     yVal->SetAttribute("Max", DoubleValue(100.0)); // adjust these values as needed
+
+//     Ptr<RandomRectanglePositionAllocator> positionAlloc = CreateObject<RandomRectanglePositionAllocator>();
+//     positionAlloc->SetX(xVal);
+//     positionAlloc->SetY(yVal);
+
+//     // Setup Mobility Model
+//     MobilityHelper mobility;
+//     mobility.SetPositionAllocator(positionAlloc);
+//     mobility.SetMobilityModel("ns3::RandomWalk2dMobilityModel",
+//                               "Bounds", RectangleValue(Rectangle(-x_max, x_max, -y_max, y_max)),
+//                               "Distance", DoubleValue(distance),
+//                               "Speed", StringValue("ns3::ConstantRandomVariable[Constant=" + std::to_string(speed) + "]"));
+//     mobility.Install(ueNodes);
+//     // Define UE nodes
+//     NodeContainer ueNodes;
+//     ueNodes.Create(ueNumPergNb * gNbNum); // Adjust ueNumPergNb and gNbNum as needed
+
+    // Positioning UEs initially
+    Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator>();
+    // for (uint32_t i = 0; i < ueNodes.GetN(); ++i) {
+        // positionAlloc->Add(Vector(5.0 * i, 5.0 * i, 0)); // Example positions, modify as needed
+        positionAlloc->Add(Vector(5.0, 5.0, 0)); 
+    // }
+
+    // Set up the mobility model
+    MobilityHelper mobility;
+    mobility.SetPositionAllocator(positionAlloc);
+    mobility.SetMobilityModel("ns3::RandomWalk2dMobilityModel",
+                              "Bounds", RectangleValue(Rectangle(-50, 50, -50, 50)), // Modify bounds as needed
+                              "Distance", DoubleValue(10.0), // Maximum distance a UE can cover in each random step
+                              "Speed", StringValue("ns3::ConstantRandomVariable[Constant=5.0]")); // Modify speed as needed
+    mobility.Install(ueNodes);
+
+
+    for (uint32_t i = 0; i < ueNodes.GetN(); ++i) {
+    Ptr<Node> node = ueNodes.Get(i);
+    Vector pos = node->GetObject<MobilityModel>()->GetPosition();
+    std::cout << "Initial position of Node " << node->GetId() << ": (" 
+              << pos.x << ", " << pos.y << ", " << pos.z << ")" << std::endl;
+    }
+
+
+
+
+// // Setup Mobility Model for UEs
+// MobilityHelper mobility;
+// mobility.SetMobilityModel("ns3::RandomWalk2dMobilityModel",
+//                           "Bounds", RectangleValue(Rectangle(-x_max, x_max, -y_max, y_max)),
+//                           "Distance", DoubleValue(distance),
+//                           "Speed", StringValue("ns3::ConstantRandomVariable[Constant=" + std::to_string(speed) + "]"));
+// mobility.Install(ueNodes);
 
 
      /////////////////////////////////////////////////////////////////////////////
@@ -378,8 +430,8 @@ for (uint32_t i = 0; i < ueNetDev.GetN(); i++)
 
 // Connect the SINR trace source to your callback
     Config::Connect("/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/ComponentCarrierMapUe/*/NrUePhy/DlDataSinr", MakeCallback(&MySinrCallback));
-    Simulator::Schedule(Seconds(1.0), &LogPosition, ueNodes); // Start logging positions after 1 second
-    Simulator::Stop(Seconds(20));
+    Simulator::Schedule(Seconds(0.5), &LogPosition, ueNodes); // Start logging positions after 1 second
+    Simulator::Stop(Seconds(10));
 
     Simulator::Run();
     Simulator::Destroy();
