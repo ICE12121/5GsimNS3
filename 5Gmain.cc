@@ -1,5 +1,7 @@
 // Include statements
+#include <random>
 #include "ns3/antenna-module.h"
+#include "ns3/random-variable-stream.h"
 // #include "lte-ue-phy.h"
 #include "ns3/config-store.h"
 #include "ns3/core-module.h"
@@ -168,10 +170,25 @@ void LogPosition(NodeContainer nodes)
         std::cout << "Node " << node->GetId() << ": Position(" << pos.x << ", " << pos.y << ", " << pos.z << ")" << std::endl;
     }
     // Schedule the next position log, make sure the time here is reasonable for your simulation
-    Simulator::Schedule(Seconds(1.0), &LogPosition, nodes);
+    // Simulator::Schedule(Seconds(1.0), &LogPosition, nodes);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float random_pri() {
+    // Create a random number generator engine
+    std::random_device rd;   // Use a hardware random device if available
+    std::mt19937 gen(rd()); // Mersenne Twister engine for 32-bit integers
 
+    // Define a uniform distribution for floating-point values between 0.0 and 1.0
+    std::uniform_real_distribution<double> distribution(700.0, 800.0);
+
+    // Generate and print random values with a step of 0.1
+    double randomValue;
+    for (double value = 700.0; value <= 800.0; value += 10.0) {
+        randomValue = distribution(gen);
+        // std::cout << "Random Value (" << value << "): " << randomValue << std::endl;
+    }
+    return randomValue;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////// Main Function //////////////////////////////////////////////////////////////////////////////////////////////
@@ -367,16 +384,40 @@ for (NetDeviceContainer::Iterator it = ueNetDev.Begin(); it != ueNetDev.End(); +
 //     mobility.Install(ueNodes);
 //     // Define UE nodes
 //     NodeContainer ueNodes;
-//     ueNodes.Create(ueNumPergNb * gNbNum); // Adjust ueNumPergNb and gNbNum as needed
+    // ueNodes.Create(ueNumPergNb * gNbNum); // Adjust ueNumPergNb and gNbNum as needed
 
-    // Positioning UEs initially
+    //Positioning UEs initially
     Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator>();
     // for (uint32_t i = 0; i < ueNodes.GetN(); ++i) {
         // positionAlloc->Add(Vector(5.0 * i, 5.0 * i, 0)); // Example positions, modify as needed
-        positionAlloc->Add(Vector(5.0, 5.0, 0)); 
+        double x = random_pri();
+        double y = random_pri();
+        positionAlloc->Add(Vector(x, y, 0)); 
     // }
 
-    // Set up the mobility model
+    // Random Positioning UEs initially
+// double minX = 0; // Maximum x-coordinate 
+// double maxX = 50; // Maximum y-coordinate
+// double minY = 0; // Maximum x-coordinate 
+// double maxY = 50; // Maximum y-coordinate
+// // Create random number generators for x and y coordinates
+// Ptr<UniformRandomVariable> randomX = CreateObject<UniformRandomVariable>();
+// randomX->SetAttribute("Min", DoubleValue(minX)); // Set the minimum value for x
+// randomX->SetAttribute("Max", DoubleValue(maxX)); // Set the maximum value for x
+
+// Ptr<UniformRandomVariable> randomY = CreateObject<UniformRandomVariable>();
+// randomY->SetAttribute("Min", DoubleValue(minY)); // Set the minimum value for y
+// randomY->SetAttribute("Max", DoubleValue(maxY)); // Set the maximum value for y
+
+// // Positioning UEs initially
+// Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator>();
+// for (uint32_t i = 0; i < ueNodes.GetN(); ++i) {
+//     double x = randomX->GetValue();
+//     double y = randomY->GetValue();
+//     positionAlloc->Add(Vector(x, y, 0));
+// }
+/////  not finish /////////////////////////
+    // // Set up the mobility model
     MobilityHelper mobility;
     mobility.SetPositionAllocator(positionAlloc);
     mobility.SetMobilityModel("ns3::RandomWalk2dMobilityModel",
@@ -392,7 +433,7 @@ for (NetDeviceContainer::Iterator it = ueNetDev.Begin(); it != ueNetDev.End(); +
     std::cout << "Initial position of Node " << node->GetId() << ": (" 
               << pos.x << ", " << pos.y << ", " << pos.z << ")" << std::endl;
     }
-
+////////////////////////////////////////////////////////////////////////
 
 
 
